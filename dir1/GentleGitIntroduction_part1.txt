@@ -1,0 +1,196 @@
+Getting starting with git
+
+Why git?
+
+There are a lot of reasons to use git, many of the advantages are things you can get from any distributed, offline version control system: you can work offline and have everything available to you that you need without needing to be connected to the internet. That includes project history, commits, etc.
+
+Git is clean, only one .git directory in the root, rather than one .svn in every directory of the repository, this makes it much easier to deal with when you pull out your recursive grep.
+
+Moving, renaming, deleting directories are really easy and clean to use.
+
+Once you understand the concepts, branching is super easy. You might say, “I never do branching, so I dont really care about this!” Thats probably because in other systems branching is prohibitively difficult, so you don’t know what awesome benefits you have available to you if its super easy. You can easily try things out by creating new branches, switch between branches with ease, test things in separate branches, have multiple remote repositories available to you in different branches and best of all, merge between the different branches. It all sounds fun, but until you see how easy it is, this is just a bunch of words.
+
+Tracking multiple remote repositories is easy, you can watch remote changes and cherry-pick them into your own branch with ease.
+
+Why not git?
+
+Git’s interface and UI are terrible, there are a mind-boggling number of individual binaries and options and wacky ideas involved. If you can turn on your filters to weed out the things that you don’t need, and start slow and easy, you’ll soon be picking up more as you go along. You dont need to understand everything from the beginning and you should consider picking up git to be more like like learning a programming language, and not something you are going to fully understand in an hour.
+
+Git’s main problem is its complexity. Part of that is because it is actually more powerful than the other systems, but you should ignore those features for now. Part of git’s complexity is that it uses nonstandard names for its most common operations. The rest of the revision control world has settled on basic commands such as ‘checkout’ and ‘revert’, but not git. The final reason git is complicated is the index.
+
+Many are confused by git, this is because git is conceptually different compared to other revision control systems You need to have a correct understanding of the theory of git or your experiences with other systems will lead you astray. But! Lets pretend that doesn’t exist right now, and you can learn about it later. I recommend you spend the first 6 months with git, pretending it is subversion and then think about expanding your understanding.
+
+With that said, do not think of git as a linear evolution from subversion. Subversion came from CVS, which came from RCS, but that progression does not extend into git. Don’t try to map your understanding of subversion onto git, and expect it to make sense, it will confuse you!
+
+Lets get started!
+
+The best way to move to git from svn is to use git-svn, this way the upstream central svn repository stays there, and you just interface with it with git, nobody will know the difference and you can always step back into your cozy svn environment if you need to without having to buy the whole farm all at once. You will start to get familiar with git and soon will be super comfortable with it. I’ll walk you through some git basics below, and then get you started using git-svn.
+
+One quick note… you might see git commands done as ‘git-command’ and also ‘git command’, you should get used to the latter form as the former is being phased out. All git commands have man pages which you can access with ‘git command —help’.
+
+Install git
+
+In Debian/Ubuntu, there is already a package called ‘git’, you want ‘git-core’, and you want to make sure that you are getting version 1.5 or later, believe me this is a major improvement in UI. You will also want the git-svn package, and gitk:
+
+$ sudo aptitude install git-core git-svn gitk
+$ git version
+git version 1.5.3.2
+
+I’d like to introduce you to git…
+
+….but why don’t you do it yourself! To introduce yourself to git, tell it your name and email address so that when you commit things, they will be properly noted. This configuration is done system-wide and only has to be done once per machine that you are working from:
+
+$ git config --global user.name "Blue Footed Nighthawk"
+$ git config --global user.email "bfn@riseup.net"
+You can see what this did by doing one of the following:
+$ git config --list
+$ cat ~/.gitconfig
+The ~/.gitconfig file is not stored in a repository, so you will need to set this on other computers if you are going to use git from them.
+
+A couple other good suggestions for your ~/.gitconfig:
+[color]
+	ui = auto
+[alias]
+	changes=diff --name-status -r
+	rlog = log --pretty=format:\"%h %Cblue%cr%Creset %cn %Cgreen%s%Creset\"
+        wdiff = diff --color-words
+        wshow = show --color-words
+[diff]
+       renames = true
+
+[push]
+	default = current
+This will setup some nice colors when you look at diffs, and setup some branch pushing defaults.
+
+Now that you are setup, lets really get started!
+
+Ok, now we are going to walk through some fundamentals of git. Understanding these will be very useful for what you want to do. Once you are set with a few basics, then we can talk about using git with crabgrass’ subversion sever, tracking other remote repositories and merging them.
+
+I know, I know… thats what you really want to do, not this stuff, but you need to lay the ground floor first, so just walk through this with me. Trust me, you are stuck in a subversion mind-set, and you will be confused if you don’t get the basics of git down first, because there are some fundamental differences. You may be tempted to try different things as we go along, try to resist that urge and instead step along with me here. The reason I ask you to resist this urge is because I’ve planned this out very carefully to logically step through the concepts in an order that makes sense and doesn’t require you to do something complicated before the fundamentals have been explained. This all fits together nicely, but gets complicated quickly if you decide to try things that you think of along the way before I’ve gotten to them. I dont want to discourage you, but instead think its best to that you note these things you want to try somewhere so you can do them later once you have gone through this.
+
+Our first git repository
+
+Lets take a directory with a couple files in it and make it a git repository that we can play with. I highly recommend you follow along by doing these commands yourself in a directory with some files in it. Try to follow along and not get clever and anticipate what is coming because you might end up getting in a weird state and then being confused, just stick with me for a little bit longer, you will have plenty of time to screw around later!
+
+$ cd ~/src/munin-node
+$ ls
+munin-node.c munin-node.c~ secret_password server2.c  server.c  uh.c  
+
+Initialize the git repository
+
+Now lets use git to initialize a local repository.
+
+$ git init
+Initialized empty Git repository in .git/
+This created a .git directory and its good to go:
+$ ls -al
+drwxr-xr-x 3 micah micah  4096 2008-06-19 16:28 ./
+drwx------ 5 micah micah  4096 2008-06-10 19:55 ../
+drwxr-xr-x 7 micah micah  4096 2008-06-19 16:28 .git/
+-rw-r--r-- 1 micah micah 10859 2008-06-11 18:14 munin-node.c
+-rw-r--r-- 1 micah micah 10859 2008-06-11 18:14 munin-node.c~
+-rw-r--r-- 1 micah micah   108 2008-06-11 18:14 secret_password
+-rw-r--r-- 1 micah micah  5342 2006-05-12 12:53 server2.c
+-rw-r--r-- 1 micah micah  1363 2006-05-12 12:53 server.c
+-rw-r--r-- 1 micah micah   357 2008-06-11 17:38 uh.c
+If you want, poke around in the .git directory, its just flat files, and you shouldn’t be afraid of them. There is a repository config file in there, hooks, and other stuff.
+
+Ignore some things
+
+There are a few files in this directory that we don’t want to ever include in the repository, so we setup git to ignore them
+
+$ cat >> .gitignore
+secret_password
+*~
+*.logdb/schema.rb
+tmp/*/*
+log/*
+config/database.yaml
+config/environments/production.rb
+db/schema.sql
+*.[oa]
+EOF
+The patterns put in this file will be applied whenever git is doing things to add or track content and will ignore files that match. The .gitignore file stays with the project and is checked into the project (there is a personal exclusion list you can make in your .git directory if you want), you can also have a .gitignore in any subdirectory if you want and it will apply to subdirectories below it. The lines I added above are some common ones that you might find in a .gitignore file (many of those are related to a rails environment)
+
+Add things to the repository
+
+$ git add .
+$
+This adds all the files in the current directory to git’s staging area (except for the things that are listed in the .gitignore), but not to your local repository.
+
+Wait, what?
+
+When using git, you actually are working with three different things: your working directory, your index, and finally your repository. When you run git add, what git does is take changes in your working directory and ‘stages’ them in the index. It does not actually add them to your repository, they are just staged. Because the term ‘index’ is somewhat unclear, people will often refer to the index as the ‘staging area’.
+
+We can see the files that are queued up in the staging area, that are going to be committed to the repository by issuing git-status:
+
+$ git status
+# On branch master
+#
+# Initial commit
+#
+# Changes to be committed:
+#   (use "git rm --cached <file>..." to unstage)
+#
+#	new file: munin-node.c
+#	new file: server.c
+#	new file: server2.c
+#	new file: uh.c
+#
+This shows that these four files are ‘staged’ in the index. They have been added, but not committed to the local repository.
+
+Now commit to the repository
+
+You can only commit to the repository things that you have first added. When you do a commit, git will take everything you have staged with ‘git add’ and actually add it into the repository.
+
+$ git commit -m "initial check-in" 
+Created initial commit d410a9c: initial checkin
+ 5 files changed, 648 insertions(+), 0 deletions(-)
+ create mode 100644 munin-node.c
+ create mode 100644 server.c
+ create mode 100644 server2.c
+ create mode 100644 uh.c
+ create mode 100644 .gitignore
+Now these files are committed to your repository! You will notice that the .gitignore is also included.
+
+Content not files
+
+So you may have noticed that you had to first add files, and then commit them. You actually have to do this every time you make a change in git. Thats because git works with content, not files or changes. When you change a file git will notice, but you need to add the changed file to what is called the ‘staging area’ or ‘index’ before you can commit it. The staging area is just a layer between your current working repository and the actual commit that has been made. Its where you stage commits before you commit them.
+
+Lets take an example, we will make a change to a file in our example repository and then see what git sees:
+$ echo >> uh.c
+$ git status
+# On branch master
+# Changed but not updated:
+#   (use "git add <file>..." to update what will be committed)
+#
+#	modified:   uh.c
+#
+no changes added to commit (use "git add" and/or "git commit -a")
+See how it sees that the file was changed, but it says it needs to be added before it can be committed. The file has been changed in our working directory, but we have not staged it yet. So lets do that by running ‘git add’ which will actually stage it so the next commit will include this file:
+
+$ git add uh.c
+$ git status
+# On branch master
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#	modified:   uh.c
+#
+Now the file shows up under ‘Changes to be committed". If you run ’git commit’ at this point, it will commit this change into the local repository.
+
+This difference between the staging area/index and the actual commit is good to know, but since you are getting started, you can ignore all of this and just use ‘git commit -a’ for a while. This will take any changes in the entire project and add them, and then do a commit. If you do ‘git commit -av’ you will get all the changes in the entire project, add them and bring up a commit editor with a diff of all the content that has changed, so you can look through what you did and write a better commit message.
+
+What has happened?
+
+If you want to see a log of all the commits in a repository, you can do ‘git log’. The ‘git log’ command will give you the commit history of your repository:
+
+$ git log
+commit d410a9c2e9769bdb2771a8f404c87f46d11aa663
+Author: Micah Anderson <micah@riseup.net>
+Date:   Thu Jun 19 16:35:56 2008 -0400
+
+    initial checkin
+This shows us the commit message about what has changed, who changed it and a globally unique SHA1 hash that identifies each commit. This hash is useful because you can use it as a reference to do various things.
+
+If you do ‘git-log -p’, you will see the diff of the actual changes to all the files.
