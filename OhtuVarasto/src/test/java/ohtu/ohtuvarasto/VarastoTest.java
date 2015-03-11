@@ -93,8 +93,8 @@ public class VarastoTest {
     @Test
     public void otaVarastostaYliSaldonEiOtaYli() {
         varasto.lisaaVarastoon(3);
-        varasto.otaVarastosta(4);
-        assertEquals(3, varasto.otaVarastosta(4), vertailuTarkkuus);
+        double saatumaara =  varasto.otaVarastosta(4);
+        assertEquals(3, saatumaara, vertailuTarkkuus);
     }
     
     @Test
