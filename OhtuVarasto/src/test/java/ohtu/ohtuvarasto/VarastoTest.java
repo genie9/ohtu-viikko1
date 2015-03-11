@@ -91,6 +91,13 @@ public class VarastoTest {
     }    
     
     @Test
+    public void otaVarastostaYliSaldonEiOtaYli() {
+        varasto.lisaaVarastoon(3);
+        varasto.otaVarastosta(4);
+        assertEquals(3, varasto.otaVarastosta(4), vertailuTarkkuus);
+    }
+    
+    @Test
     public void konstr() {
         varasto = new Varasto(-1);
         varasto = new Varasto(0);
