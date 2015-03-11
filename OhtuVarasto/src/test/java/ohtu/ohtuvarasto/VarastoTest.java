@@ -98,6 +98,6 @@ public class VarastoTest {
         varasto = new Varasto(1,2);
         varasto = new Varasto(-1,2);
         varasto = new Varasto(-1,-1);
-        varasto.toString()
+        varasto.toString();
     }
 }
